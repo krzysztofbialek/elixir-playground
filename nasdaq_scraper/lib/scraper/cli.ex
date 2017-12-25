@@ -7,7 +7,7 @@ defmodule Scraper.CLI do
     args |> parse_args |> process
   end
 
-  def process(type) do
+  defp process(type) do
     start(type)
   end
 
