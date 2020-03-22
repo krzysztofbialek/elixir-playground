@@ -18,10 +18,10 @@ defmodule Scraper.CLI do
     )
   
     case parse do
-      { _, [type: type], _ } when type in @market_types
+      { [type: type], _, _ } when type in @market_types
         -> type
 
-      { _, [type: type], _ } when type not in @market_types ->
+      { [type: type], _, _ } when type not in @market_types ->
         IO.puts """
            type: must be one of premarket, after-hours, real-time
            """
@@ -32,4 +32,3 @@ defmodule Scraper.CLI do
     end
   end
 end
-    
