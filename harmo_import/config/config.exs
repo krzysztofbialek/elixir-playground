@@ -21,6 +21,22 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+email = 
+  System.get_env("EMAIL") ||
+  raise """
+  environment variable EMAIL is missing
+  """
+
+config :harmo_import, email: email
+
+password = 
+  System.get_env("PASSWORD") ||
+  raise """
+  environment variable PASSWORD is missing
+  """
+
+config :harmo_import, password: password
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
