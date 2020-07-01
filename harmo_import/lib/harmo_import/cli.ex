@@ -45,7 +45,14 @@ defmodule HarmoImport.CLI do
 
   # load and group logs from CSV by date
   def fetch_grouped_logs(file) do
-    file |> Path.expand(__DIR__) |> File.stream! |> CSV.decode |> Enum.slice(1, 1000) |> Enum.map(fn {:ok, row} -> Enum.slice(row, 0, 4) end) |> Enum.group_by(fn(row) -> Enum.at(row, 3) end) |> Enum.map(&Tuple.to_list/1)
+    file 
+    |> Path.expand(__DIR__)
+    |> File.stream!
+    |> CSV.decode
+    |> Enum.slice(1, 1000)
+    |> Enum.map(fn {:ok, row} -> Enum.slice(row, 0, 4) end)
+    |> Enum.group_by(fn(row) -> Enum.at(row, 3) end)
+    |> Enum.map(&Tuple.to_list/1)
   end
 
   def create_harmo_entries(grouped_logs, user_token) do    
@@ -76,8 +83,12 @@ defmodule HarmoImport.CLI do
     payload = log_entry(desc, start_time, end_time)
 
     case send_request(payload, headers) do
-      {:ok, _} -> process_row(end_time, rest, user_token)
-      {:error, _} -> IO.puts(:error)
+      {:ok, %HTTPoison.Response{status_code: 201}} -> 
+        process_row(end_time, rest, user_token)
+      {:ok, %HTTPoison.Response{status_code: _, body: body}} -> 
+        Poison.decode(body) |> IO.inspect
+      {:error, %HTTPoison.Error{reason: reason}} -> 
+        IO.inspect(reason)
     end
   end
 
@@ -88,7 +99,7 @@ defmodule HarmoImport.CLI do
   def send_request(payload, headers) do
     url = "https://api.rebased.harmonogram.rebased.pl/api/v1/time-logs"
     {:ok, body} = Poison.encode(payload)
-    {:ok, _} = HTTPoison.post(url, body, headers)
+    HTTPoison.post(url, body, headers)
     # IO.puts(Poison.decode(response.body))
     # {:ok, Poison.decode(response.body)}
   end
