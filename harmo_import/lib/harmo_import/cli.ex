@@ -51,16 +51,20 @@ defmodule HarmoImport.CLI do
     |> CSV.decode
     |> Enum.slice(1, 1000)
     |> Enum.map(fn {:ok, row} -> Enum.slice(row, 0, 4) end)
-    |> Enum.group_by(fn(row) -> Enum.at(row, 3) end)
+    |> Enum.group_by(fn(row) -> format_entry_date(Enum.at(row, 3)) end)
     |> Enum.map(&Tuple.to_list/1)
+  end
+
+  def format_entry_date(date_string) do
+    Timex.parse!(date_string, "%F %H:%M", :strftime) |> Timex.format!("%F", :strftime)
   end
 
   def create_harmo_entries(grouped_logs, user_token) do    
     Enum.each(grouped_logs, fn day ->
-      row_date = Timex.parse!(Enum.at(day, 0), "%F %H:%M", :strftime)
+      row_date = Timex.parse!(Enum.at(day, 0), "%F", :strftime)
       start_time = %DateTime{year: row_date.year, month: row_date.month, day: row_date.day, zone_abbr: "CET",
                       hour: 09, minute: 0, second: 0, microsecond: {0, 0},
-                      utc_offset: 7200, std_offset: 0, time_zone: "Europe/Warsaw"}
+                      utc_offset: 3600, std_offset: 1, time_zone: "Europe/Warsaw"}
       
       process_row(start_time, Enum.at(day, 1), user_token)
     end)
